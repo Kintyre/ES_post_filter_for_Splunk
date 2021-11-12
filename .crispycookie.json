@@ -22,7 +22,7 @@
             "name": "search-command",
             "layer_name": "50-spl",
             "cookiecutter": {
-                "spl_class": "parsespl",
+                "spl_class": "ParseSplCommand",
                 "spl_script": "parse_spl",
                 "spl_command": "parsespl",
                 "spl_type": "Eventing",
