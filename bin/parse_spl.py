@@ -17,7 +17,7 @@ from splunklib.client import HTTPError
 
 
 @Configuration()
-class parsespl(EventingCommand):
+class ParseSplCommand(EventingCommand):
 
     mode = Option(
         require=False,
@@ -41,7 +41,7 @@ class parsespl(EventingCommand):
     *** Method-level stuff ***
 
     # Log the commands given to the SPL command:
-    self.logger.debug('parsespl: %s', self)
+    self.logger.debug('ParseSplCommand: %s', self)
 
     # Access metadata about the search, such as earliest_time for the selected time range
     self.metadata.searchinfo.earliest_time
@@ -55,7 +55,7 @@ class parsespl(EventingCommand):
     """
 
     def prepare(self):
-        super(parsespl, self).prepare()
+        super(ParseSplCommand, self).prepare()
         will_execute = bool(self.metadata.searchinfo.sid and
                             not self.metadata.searchinfo.sid.startswith("searchparsetmp_"))
         '''
@@ -144,4 +144,4 @@ class parsespl(EventingCommand):
 
 
 if __name__ == '__main__':
-    dispatch(parsespl, sys.argv, sys.stdin, sys.stdout, __name__)
+    dispatch(ParseSplCommand, sys.argv, sys.stdin, sys.stdout, __name__)
