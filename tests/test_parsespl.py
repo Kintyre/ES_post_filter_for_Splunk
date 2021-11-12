@@ -9,7 +9,7 @@ import parse_spl
 # COOKIECUTTER-TODO: Fill in unit tests logic, as required.  Remove default tests
 
 
-class Testparsespl(unittest.TestCase):
+class TestParseSplCommand(unittest.TestCase):
     def test_example001(self):
         """ Descrption of the test ... """
         actual = "1"

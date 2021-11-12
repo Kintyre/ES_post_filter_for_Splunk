@@ -32,7 +32,7 @@ log.setLevel(logging.DEBUG)
 
 
 @Configuration()
-class parsespl(EventingCommand):
+class ParseSplCommand(EventingCommand):
     """
 
     ##Syntax
@@ -81,7 +81,7 @@ class parsespl(EventingCommand):
     *** Method-level stuff ***
 
     # Log the commands given to the SPL command:
-    self.logger.debug('parsespl: %s', self)
+    self.logger.debug('ParseSplCommand: %s', self)
 
     # Access metadata about the search, such as earliest_time for the selected time range
     self.metadata.searchinfo.earliest_time
@@ -96,11 +96,11 @@ class parsespl(EventingCommand):
     """
 
     def __init__(self):
-        super(parsespl, self).__init__()
+        super(ParseSplCommand, self).__init__()
         # COOKIECUTTER-TODO: initialize any custom variables in __init__()
 
     def prepare(self):
-        super(parsespl, self).prepare()
+        super(ParseSplCommand, self).prepare()
         # COOKIECUTTER-TODO: Customize or DELETE prepare() - arg validation & REST/CONF fetch
 
         will_execute = bool(self.metadata.searchinfo.sid and
@@ -159,4 +159,4 @@ class parsespl(EventingCommand):
 
 
 if __name__ == '__main__':
-    dispatch(parsespl, sys.argv, sys.stdin, sys.stdout, __name__)
+    dispatch(ParseSplCommand, sys.argv, sys.stdin, sys.stdout, __name__)
