@@ -1,5 +1,15 @@
 # Developing es_post_filter_for_Splunk
 
+
+## Python packages
+
+Externally required Python packages are listed in the [requirements.txt](./requirements.txt) file.
+These packages are automatically downloaded and installed into the `lib` folder of the addon during the build process.
+
+**Gotchas:**  Avoid packages that *only* work on a specific version of Python or has OS-specific compiled libraries.
+Python 2.7 support is going away for more and more packages, so pinning older versions may be required until targeting only Splunk 8+ for compatibility.
+The default build script only builds with a single version of Python, and doesn't attempt to separate packages based on OS or Python version.
+
 ## Development
 
 Setup a local virtual environment in the top level of the package to install the necessary build and runtime requirements.
@@ -11,6 +21,7 @@ Setup a local virtual environment in the top level of the package to install the
 Setup pre-commit
 
     pre-commit install --install-hooks
+
 
 ## Building
 

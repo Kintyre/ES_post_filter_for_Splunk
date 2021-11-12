@@ -29,7 +29,7 @@
                 "need_auth": false,
                 "conf_name": "",
                 "conf_type": "entity",
-                "json_output": "True"
+                "json_output": true
             }
         }
     ],
