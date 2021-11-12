@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 from ksconf.builder import BuildManager, VERBOSE, QUIET, default_cli
-from ksconf.builder.steps import clean_build, copy_files
+from ksconf.builder.steps import clean_build, copy_files, pip_install
 
 manager = BuildManager()
 
@@ -10,14 +10,32 @@ APP_FOLDER = "es_post_filter_for_Splunk"
 SPL_NAME = "es_post_filter_for_splunk-{{version}}.tgz"
 SOURCE_DIR = "."
 
-COPY_FILES = [
-    "README.md",
-    "default/",
-    "metadata/*.meta",
-    "static/",
-    "lookups/*.csv",
-    "appserver/",
+REQUIREMENTS = "requirements.txt"
+
+# Files needed to support the build process (but not in the final package)
+BUILD_FILES = [
+    REQUIREMENTS,
 ]
+
+COPY_FILES = [
+    "*.md",
+    "appserver/",
+    "bin/",
+    "default.d/",
+    "lookups/*.csv",
+    "metadata.d/",
+    "README/",
+    "static/",
+] + BUILD_FILES
+
+
+@manager.cache([REQUIREMENTS], ["lib/"], timeout=7200)
+def python_packages(step):
+    # Sticking with the defaults
+    pip_install(step, REQUIREMENTS, "lib",
+                handle_dist_info="remove"  # vs 'rename'
+                )
+
 
 def package_spl(step):
     top_dir = step.dist_path.parent
@@ -27,6 +45,8 @@ def package_spl(step):
              "--file", step.dist_path / SPL_NAME,   # Path to created tarball
              "--app-name", APP_FOLDER,              # Top-level directory name
              "--block-local",                       # Build from version control should have no 'local' folder
+             "--layer-method", "dir.d",
+             "--blocklist", REQUIREMENTS,           # No need to distribute this
              "--release-file", str(release_path),
              ".")
     # Provide the dist file as a short name too (useful for some CI/CD tools)
@@ -43,7 +63,10 @@ def build(step, args):
     # Step 2:  Copy files from source to build folder
     copy_files(step, COPY_FILES)
 
-    # Step 3: Build tarball
+    # Step 3:  Install Python package dependencies
+    python_packages(step)
+
+    # Step 4: Build tarball
     package_spl(step)
 
 

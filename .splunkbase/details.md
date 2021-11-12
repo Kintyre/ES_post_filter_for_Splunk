@@ -49,12 +49,6 @@ A few example are provided below to kickstart the documentation effort.
 | ---------- | ------- |
 | `sourcetype` | Describe the purpose here |
 
-### Eventtypes
-
-| Eventtype | Tag | Description |
-| --------- | --- | ----------- |
-| `eventtype` | list,of,tags | Describe the purpose here |
-
 ## Source & Licensing
 
 This is an open source project, see `LICENSE` for full details.

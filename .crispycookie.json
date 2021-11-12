@@ -1,14 +1,13 @@
 {
     "layers": [
         {
-            "name": "app-simple",
+            "name": "app-python",
             "layer_name": "10-base",
             "cookiecutter": {
                 "vendor": "Kintyre",
                 "vendor_product": "Kintyre ES Post Filter",
                 "app_folder": "es_post_filter_for_Splunk",
                 "app_label": "ES Post-filter for Splunk",
-                "cim_version": "",
                 "build_tool": "GitHub_Actions",
                 "author_splunkid": "kintyre",
                 "author_email": "splunkbase@kintyre.co",
@@ -18,9 +17,26 @@
                 "git_repo": "https://github.com/Kintyre/es_post_filter_for_Splunk",
                 "git_branch": "main"
             }
+        },
+        {
+            "name": "search-command",
+            "layer_name": "50-spl",
+            "cookiecutter": {
+                "spl_class": "parsespl",
+                "spl_script": "parse_spl",
+                "spl_command": "parsespl",
+                "spl_type": "Eventing",
+                "need_auth": false,
+                "conf_name": "",
+                "conf_type": "entity",
+                "json_output": true
+            }
         }
     ],
-    "layer_mounts": [],
+    "layer_mounts": [
+        "default",
+        "metadata"
+    ],
     "source": {
         "repo": "git@github.com:Kintyre/cypress-cookiecutter.git",
         "rev": "v1.6.2"
