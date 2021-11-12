@@ -23,7 +23,7 @@ index=_internal | `filter_results(splunk_internals,exclude)`
 For reviewing a filter's generated case statement, run:
 
 ```
-`filter_expression_build_case(splunk_internals,include)`
+| `filter_expression_build_case(splunk_internals,include)`
 ```
 
 ## Danger
