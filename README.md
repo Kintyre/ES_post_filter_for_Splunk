@@ -13,6 +13,27 @@ Additional details can be found [here](./.splunkbase/details.md).
 
 
 
+## Example
+
+Apply a filter to search results
+```
+index=_internal | `filter_results(splunk_internals,exclude)`
+```
+
+For reviewing a filter's generated case statement, run:
+
+```
+`filter_expression_build_case(splunk_internals,include)`
+```
+
+## Danger
+
+A single typo in the `where_expression` field can cause all searches using the same `filter_id` to fail at once.  Attempts to use `map` for eval validation have fallen flat.  Another possible approach to explore would be the use of the `search/parser` rest endpoint.
+
+Look into "ast" endpoint (undocumented)
+
+
+
 ## Sourcetypes
 
 | Sourcetype | Purpose |
