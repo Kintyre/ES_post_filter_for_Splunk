@@ -1,0 +1,218 @@
+<form>
+    <label>Lookup Update</label>
+    <init>
+        <set token="lookup_table">filter_expression_rules</set>
+        <set token="trigger_refresh">001</set>
+    </init>
+    <search id="example_search">
+        <query>$example_search$</query>
+        <earliest>$timepicker.earliest$</earliest>
+        <latest>$timepicker.latest$</latest>
+    </search>
+    <fieldset submitButton="false"></fieldset>
+    <row>
+        <panel>
+            <title>Step 1: Sample search</title>
+            <input type="text" token="example_search">
+                <label>Sample search</label>
+                <initialValue>index=_internal sourcetype=splunkd | head 100</initialValue>
+            </input>
+            <input type="time" token="timepicker">
+                <label></label>
+                <default>
+                    <earliest>-24h@h</earliest>
+                    <latest>now</latest>
+                </default>
+            </input>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <input type="radio" token="example_search_type">
+                <label>Display</label>
+                <choice value="event">Events</choice>
+                <choice value="table">Table</choice>
+                <default>event</default>
+                <change>
+                    <condition value="event">
+                        <set token="example_search_event">1</set>
+                        <unset token="example_search_table"/>
+                    </condition>
+                    <condition value="table">
+                        <set token="example_search_table">1</set>
+                        <unset token="example_search_event"/>
+                    </condition>
+                </change>
+            </input>
+        </panel>
+    </row>
+    <row>
+        <panel depends="$example_search_event$">
+            <title>Sample search (Events)</title>
+            <event>
+                <search base="example_search"></search>
+            </event>
+        </panel>
+        <panel depends="$example_search_table$">
+            <title>Sample search (Table)</title>
+            <table>
+                <search base="example_search"></search>
+                <option name="drilldown">none</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Step 2: Filter expression</title>
+            <input type="dropdown" token="action">
+                <label>Match action</label>
+                <choice value="exclude">Exclude</choice>
+                <choice value="include">Include</choice>
+                <initialValue>exclude</initialValue>
+            </input>
+            <input type="text" token="filter_expression">
+                <label>Filter expression  (Eval syntax)</label>
+                <initialValue>true()</initialValue>
+                <change>
+                    <unset token="save_done"/>
+                    <unset token="form.fake_save_button"/>
+                </change>
+            </input>
+            <table depends="$filter_error$">
+                <title>Expression error message</title>
+                <search>
+                    <done>
+                        <condition match="'job.resultCount' != 0">
+                            <set token="filter_error">1</set>
+                            <unset token="filter_ok"/>
+                        </condition>
+                        <condition>
+                            <set token="filter_ok">1</set>
+                            <unset token="filter_error"/>
+                        </condition>
+                    </done>
+                    <query>
+| makeresults | eval expr=urldecode("$filter_expression|u$") | parsespl mode="where" field=expr
+```
+| spath output=eval_test_expression input=info "commands{}[1].args"
+```
+| eval status=if(isnotnull(error), "Error", "ok")
+| table status expr error
+| search status != "ok"
+                    </query>
+                    <earliest>$earliest$</earliest>
+                    <latest>$latest$</latest>
+                </search>
+                <option name="drilldown">none</option>
+                <option name="refresh.display">progressbar</option>
+                <format type="color" field="status">
+                    <colorPalette type="map">{"Ok":#53A051,"Error":#DC4E41}</colorPalette>
+                </format>
+            </table>
+        </panel>
+    </row>
+    <row depends="$filter_ok$">
+        <panel>
+            <title>Step 3: Review filtered match</title>
+            <table>
+                <search base="example_search">
+                    <query>
+            | eval RESULT=case($filter_expression$, "$action$", true(), "no match")
+          </query>
+                </search>
+                <option name="drilldown">none</option>
+                <format type="color" field="RESULT">
+                    <colorPalette type="map">{"exclude":#F1813F,"include":#53A051}</colorPalette>
+                </format>
+            </table>
+        </panel>
+    </row>
+    <row depends="$filter_ok$,$filter_expression$" rejects="$save_done$">
+        <panel>
+            <title>Step 4: Save filter to lookup</title>
+            <input type="text" token="filter_id">
+                <label>Filter ID</label>
+            </input>
+            <input type="text" token="comment">
+                <label>Comment</label>
+            </input>
+            <input type="dropdown" token="fake_save_button" depends="$filter_ok$" rejects="$save_done$">
+                <label>Click 'Save' to write to lookup</label>
+                <choice value="save">Save</choice>
+                <change>
+                    <condition value="save">
+                        <set token="do_save">1</set>
+                        <unset token="save_done"/>
+                    </condition>
+                </change>
+            </input>
+            <table depends="$do_save$">
+                <search depends="$do_save$">
+                    <done>
+                        <unset token="do_save"/>
+                        <set token="save_done">1</set>
+                        <set token="trigger_refresh">$filter_expression|u$</set>
+                        <!-- Every time a save occurs, 'trigger_refresh' get's updated which triggers a new search, but the actual value doesn't matter at all -->
+                    </done>
+                    <query>| makeresults
+  | eval where_expression=urldecode("$filter_expression|u$")
+  | eval action=urldecode("$action|u$")
+  | eval filter_id=urldecode("$filter_id|u$")
+  | eval comment=urldecode("$comment|u$")
+  | eval user="$env:user$"
+  | eval enabled=1
+  | fields - _time
+  | outputlookup append=true $lookup_table$</query>
+                    <earliest>$earliest$</earliest>
+                    <latest>$latest$</latest>
+                </search>
+                <option name="refresh.display">progressbar</option>
+            </table>
+        </panel>
+    </row>
+    <row depends="$save_done$">
+        <panel>
+            <html>
+                <h2>Save Complete!</h2>
+                <pre>
+  | makeresults
+  | eval where_expression=urldecode("$filter_expression|u$")
+  | eval action=urldecode("$action|u$")
+  | eval filter_id=urldecode("$filter_id|u$")
+  | eval comment=urldecode("$comment|u$")
+  | eval user="$env:user$"
+  | eval enabled=1
+  | field - _time
+  | outputlookup append=true $lookup_table$
+  </pre>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Reference:  Existing lookup content</title>
+            <table>
+                <title>Contents of $lookup_table$</title>
+                <search>
+                    <query>| inputlookup $lookup_table$ | eval _throwaway="$trigger_refresh|u$" | table filter_id,where_expression,action,enabled</query>
+                </search>
+                <option name="count">20</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">none</option>
+                <option name="percentagesRow">false</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <h2>Reference: Official Docs</h2>
+        See docs on the <a href="https://docs.splunk.com/Documentation/Splunk/$env:version$/SearchReference/Where">Where command</a>
+        Also avaiable is a full <a href="https://docs.splunk.com/Documentation/Splunk/8.2.4/SearchReference/CommonEvalFunctions#Alphabetical_list_of_functions">list of functions</a> that can be used within an eval/where expression.
+      </html>
+        </panel>
+    </row>
+</form>
