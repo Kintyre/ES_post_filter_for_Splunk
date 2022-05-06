@@ -80,7 +80,7 @@ class ParseSplCommand(EventingCommand):
         if not have_field:
             self.write_error("Only field is currently implemented.")
             sys.exit(1)
-            # In value mode, we switch into a 'generating' commands not a eventing command
+            # In value mode, we switch into a 'generating' commands not an eventing command
 
     @functools.lru_cache(1000)
     def parse_search(self, query):

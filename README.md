@@ -4,15 +4,10 @@ _ES Post-filter for Splunk_
 
 ## Example usage
 
-ES Post-filter for Splunk implements a eventing custom SPL search command called `parsespl`.
+ES Post-filter for Splunk implements several macros used for building `where` clauses from lookup files and an eventing/streaming custom SPL search command called `parsespl`.
 
-```
-| parsespl type=robot height=tall
 
-| parsespl action=ping target=fancy_pig
-```
-
-## Example
+## Filtering example
 
 Apply a filter to search results
 ```
@@ -27,11 +22,40 @@ For reviewing a filter's generated case statement, run:
 
 ## Danger
 
-A single typo in the `where_expression` field can cause all searches using the same `filter_id` to fail at once.  Attempts to use `map` for eval validation have fallen flat.  Another possible approach to explore would be the use of the `search/parser` rest endpoint.
-
-Look into "ast" endpoint (undocumented)
+A single typo in the `where_expression` field can cause all searches using the same `filter_id` to fail at once.  This can be detected ahead of time using the `parsespl` command.  This sends in all expression to the `search/parser` rest endpoint.
 
 
+## Parse-SPL command
+
+**Syntax:**
+
+```
+parsespl mode=(search|eval|where|raw) (field=<field>|value=<str>)
+```
+
+**Examples:**
+
+Simple do nothing example:
+```
+| makeresults | eval where_expr="true()" | parsespl mode=where field=where_expr
+```
+
+All good. No errors!  :-)
+
+
+| makeresults | eval where_expr="notafunction()" | parsespl mode=where field=where_expr
+```
+
+Resulting message:  `Error in 'eval' command: The 'notafunction' function is unsupported or undefined.`
+
+
+Probe saved searches for SPL errors:
+```
+| rest /servicesNS/-/-/saved/searches count=50
+| table title eai:acl.app eai:acl.owner search
+| parsespl mode=search field=search
+| search error=*
+```
 
 ## Sourcetypes
 
@@ -49,7 +73,7 @@ Find internal/script errors:
 Add `logging_level=DEBUG` to your existing query to enable additional debug logs:
 
 ```
-| parsespl logging_level=DEBUG query=...
+| parsespl logging_level=DEBUG field=...
 ```
 
 ### Search internal logs
