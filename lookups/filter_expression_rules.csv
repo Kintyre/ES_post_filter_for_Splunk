@@ -1,4 +1,4 @@
 filter_id,where_expression,action,enabled
 splunk_internals,"sourcetype=""splunkd"" AND souce like ""%metrics.log%""",exclude,1
-splunk_internals,"source LIKE ""%_access.log%"",include,1
-splunk_internals,"source LIKE ""%metrics.log%"" AND group=""queue"" AND name=""fschangemanager_queue"",include,1
+splunk_internals,"source LIKE ""%_access.log%""",include,1
+splunk_internals,"source LIKE ""%metrics.log%"" AND group=""queue"" AND name=""fschangemanager_queue""",include,1
